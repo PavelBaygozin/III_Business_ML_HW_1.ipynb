@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # Сервис RabbitMQ для обмена сообщениями
+  rabbitmq:
+    image: rabbitmq:latest  # Используем последнюю версию RabbitMQ
+    ports:
+      - "15672:15672"  # Порт для веб-интерфейса
+      - "5672:5672"    # Порт для AMQP
+    networks:
+      - app_network  # Подключение к сети
+
+  # Сервис для генерации данных
+  features:
+    build:
+      context: .  # Контекст сборки
+      dockerfile: features/Dockerfile.features  # Dockerfile для сборки
+    volumes:
+      - ./logs:/app/logs  # Монтирование папки с логами
+    environment:
+      - PYTHONPATH=/app  # Установка переменной окружения
+    depends_on:
+      - rabbitmq  # Зависимость от RabbitMQ
+    networks:
+      - app_network  # Подключение к сети
+
+  # Сервис для логирования метрик
+  metric:
+    build:
+      context: .  # Контекст сборки
+      dockerfile: metric/Dockerfile.metric  # Dockerfile для сборки
+    volumes:
+      - ./logs:/app/logs  # Монтирование папки с логами
+    environment:
+      - PYTHONPATH=/app  # Установка переменной окружения
+    depends_on:
+      - rabbitmq  # Зависимость от RabbitMQ
+    networks:
+      - app_network  # Подключение к сети
+
+  # Сервис для визуализации данных
+  plot:
+    build:
+      context: .  # Контекст сборки
+      dockerfile: plot/Dockerfile.plot  # Dockerfile для сборки
+    volumes:
+      - ./logs:/app/logs  # Монтирование папки с логами
+    environment:
+      - PYTHONPATH=/app  # Установка переменной окружения
+    depends_on:
+      - rabbitmq  # Зависимость от RabbitMQ
+    networks:
+      - app_network  # Подключение к сети
+
+# Настройка сети
+networks:
+  app_network:  # Имя сети
+    driver: bridge  # Используем драйвер bridge

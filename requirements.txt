@@ -1,0 +1,6 @@
+scikit-learn
+pika
+numpy
+matplotlib
+pandas
+rabbitmq
